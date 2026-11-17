@@ -157,13 +157,14 @@
     try {
       const res = await fetch(API_URL);
       appData = await res.json();
-      document.getElementById('app-update').innerText = "Data Terhubung • " + appData.daftarBulan.join(", ");
+      document.getElementById('app-update').innerText = "Update: " + appData.terakhirUpdate;
       renderBulanFilters();
       renderDashboard();
     } catch (e) {
       document.getElementById('app-update').innerText = "Gagal memuat data. Periksa koneksi internet.";
     }
   }
+
 
   function renderBulanFilters() {
     const opsi = ["SEMUA", ...appData.daftarBulan];
