@@ -21,9 +21,13 @@
   .saldo-foot { border-top: 1px solid rgba(255,255,255,0.2); padding-top: 9px; }
   .val-md { font-size: 13px; font-weight: 700; margin-top: 2px; }
   .main { width: 100%; max-width: 460px; margin: 16px auto 0; padding: 0 14px; }
-  .tabs { display: flex; background: #e5e7eb; padding: 3px; border-radius: 10px; margin-bottom: 14px; }
+  .tabs { display: flex; background: #e5e7eb; padding: 3px; border-radius: 10px; margin-bottom: 12px; }
   .tab { flex: 1; border: none; padding: 9px 6px; font-size: 12px; font-weight: 600; border-radius: 8px; background: transparent; color: #4b5563; cursor: pointer; }
   .tab.active { background: #fff; color: #047857; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+  .bulan-bar { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 10px; }
+  .bulan-bar::-webkit-scrollbar { display: none; }
+  .b-pill { border: 1px solid #d1d5db; background: #fff; color: #4b5563; padding: 6px 12px; border-radius: 99px; font-size: 11px; font-weight: 600; white-space: nowrap; cursor: pointer; }
+  .b-pill.active { background: #047857; color: #fff; border-color: #047857; }
   .rt-card { background: #fff; padding: 12px; border-radius: 14px; border: 1px solid #e5e7eb; cursor: pointer; }
   .rt-card:active { transform: scale(0.97); }
   .rt-name { font-size: 13px; font-weight: 700; color: #047857; }
@@ -35,10 +39,11 @@
   .flex-b { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
   .search { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #d1d5db; font-size: 13px; margin-bottom: 10px; background: #fff; }
   .item { background: #fff; padding: 12px; border-radius: 11px; border: 1px solid #e5e7eb; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 8px; cursor: pointer; }
-  .b-ok { background: #d1fae5; color: #065f46; font-size: 10px; font-weight: 700; padding: 4px 9px; border-radius: 99px; white-space: nowrap; }
+  .b-ok { background: #d1fae5; color: #065f46; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 99px; white-space: nowrap; }
   .b-no { background: #fee2e2; color: #991b1b; font-size: 10px; font-weight: 700; padding: 4px 9px; border-radius: 99px; white-space: nowrap; }
-  .trx { padding: 10px 0; border-bottom: 1px solid #f3f4f6; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .trx { padding: 11px 0; border-bottom: 1px solid #f3f4f6; display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
   .trx:last-child { border-bottom: none; }
+  .link-nota { display: inline-block; margin-top: 4px; font-size: 10px; font-weight: 600; color: #047857; background: #ecfdf5; padding: 2px 8px; border-radius: 6px; text-decoration: none; border: 1px solid #a7f3d0; }
 </style>
 </head>
 <body>
@@ -50,10 +55,10 @@
         <div id="app-title" class="h-title">Jimpitan Dusun</div>
         <div id="app-update" class="h-sub">Memuat data...</div>
       </div>
-      <span class="badge-rw">KEBONBAWANG</span>
+      <span class="badge-rw">8 RT • RW 06 & 07</span>
     </div>
     <div class="card-saldo">
-      <div class="lbl-sm">Total Saldo</div>
+      <div class="lbl-sm">Total Saldo Kas Dusun</div>
       <div id="total-saldo" class="val-lg">Rp 0</div>
       <div class="grid-2 saldo-foot">
         <div>
@@ -68,133 +73,229 @@
     </div>
   </div>
 </div>
+
 <div class="main">
-  <!-- HALAMAN 1: BERANDA -->
   <div id="page-home">
     <div class="tabs">
-      <button onclick="switchTab('rt')" id="tab-rt" class="tab active">Iuran Per RT</button>
-      <button onclick="switchTab('mutasi')" id="tab-mutasi" class="tab">Riwayat Kas</button>
+      <button onclick="switchTab('rt')" id="tab-rt" class="tab active">Jimpitan Per RT</button>
+      <button onclick="switchTab('mutasi')" id="tab-mutasi" class="tab">Pengeluaran & Kas</button>
     </div>
-    <div id="view-rt" class="grid-2"></div>
-    <div id="view-mutasi" class="box hidden">
-      <div style="font-weight:700; font-size:13px; margin-bottom:6px;">Catatan Kas</div>
-      <div id="list-transaksi"></div>
+
+    <div id="sec-rt">
+      <div id="filter-bulan-home" class="bulan-bar"></div>
+      <div id="view-rt" class="grid-2"></div>
+    </div>
+
+    <div id="sec-mutasi" class="hidden">
+      <div class="bulan-bar">
+        <button onclick="pilihTipeKas('SEMUA')" id="kas-all" class="b-pill active">Semua Riwayat</button>
+        <button onclick="pilihTipeKas('keluar')" id="kas-out" class="b-pill">Khusus Pengeluaran</button>
+        <button onclick="pilihTipeKas('masuk')" id="kas-in" class="b-pill">Pemasukan</button>
+      </div>
+      <div class="box">
+        <div class="flex-b" style="margin-bottom:8px; padding-bottom:8px; border-bottom:1px solid #e5e7eb;">
+          <span id="judul-kas-box" style="font-weight:700; font-size:13px;">Catatan Kas Dusun</span>
+          <span id="subtotal-kas-box" style="font-weight:700; font-size:12px; color:#047857;">Rp 0</span>
+        </div>
+        <div id="list-transaksi"></div>
+      </div>
     </div>
   </div>
 
-  <!-- HALAMAN 2: WARGA PER RT -->
   <div id="page-rt" class="hidden">
     <button onclick="showPage('page-home')" class="btn-back">← Kembali ke Daftar RT</button>
     <div class="box flex-b">
       <div>
-        <div id="rt-title" style="font-size:16px; font-weight:700;">RT 01 / RW 06</div>
-        <div id="rt-count" style="font-size:11px; color:#6b7280; margin-top:2px;">0 Warga</div>
+        <div id="rt-title" style="font-size:16px; font-weight:700;">RT 01 RW 06</div>
+        <div id="rt-count" style="font-size:11px; color:#6b7280; margin-top:2px;">0 KK</div>
       </div>
       <div style="text-align:right;">
         <div style="font-size:10px; color:#9ca3af;">Terkumpul</div>
         <div id="rt-total" style="font-size:15px; font-weight:700; color:#059669;">Rp 0</div>
       </div>
     </div>
-    <input type="text" id="cari" onkeyup="renderWarga()" placeholder="Cari nama warga..." class="search">
+    <div id="filter-bulan-rt" class="bulan-bar"></div>
+    <input type="text" id="cari" onkeyup="renderWarga()" placeholder="Cari nama kepala keluarga..." class="search">
     <div id="list-warga"></div>
   </div>
 
-  <!-- HALAMAN 3: DETAIL WARGA -->
   <div id="page-warga" class="hidden">
     <button onclick="showPage('page-rt')" class="btn-back">← Kembali ke Daftar Warga</button>
     <div class="box">
-      <span id="w-rt" class="b-ok">RT 01 / RW 06</span>
-      <div id="w-nama" style="font-size:18px; font-weight:700; margin-top:8px;">Nama Warga</div>
-      <div id="w-rumah" style="font-size:11px; color:#6b7280; margin-top:2px;">RW 06</div>
+      <span id="w-rt" class="b-ok">RT 01 RW 06</span>
+      <div id="w-nama" style="font-size:17px; font-weight:700; margin-top:8px;">Nama Kepala Keluarga</div>
+      <div id="w-no" style="font-size:11px; color:#6b7280; margin-top:2px;">No. Urut 1</div>
       <div class="flex-b" style="margin-top:12px; padding-top:10px; border-top:1px solid #f3f4f6;">
         <span style="font-size:12px; color:#6b7280;">Total Jimpitan Dibayar</span>
         <span id="w-total" style="font-size:16px; font-weight:700; color:#059669;">Rp 0</span>
       </div>
     </div>
-    <div style="font-size:12px; font-weight:700; margin-bottom:8px; color:#374151;">Rincian Per Minggu</div>
-    <div id="list-minggu"></div>
+    <div id="list-bulan-warga"></div>
   </div>
 </div>
 
 <script>
-  const API_URL = "https://script.google.com/macros/s/AKfycbyYjflpODTJdnZCafZFIZaCFTdk2obKyeMHKy1uYKQNfvNO0bdLwS_nUrJCJIbiFQB4/exec";
+  const API_URL = "https://script.google.com/macros/s/AKfycbxjSAxm3JrLoWjT2faXSWhsGYcak_rUryvSKa81khwRaifQ0c7s8gpGoXoZUVj3soyJEg/exec";
 
-  const WILAYAH = [
-    { rt: "RT 01", rw: "RW 06" }, { rt: "RT 02", rw: "RW 06" },
-    { rt: "RT 03", rw: "RW 06" }, { rt: "RT 04", rw: "RW 06" },
-    { rt: "RT 01", rw: "RW 07" }, { rt: "RT 02", rw: "RW 07" },
-    { rt: "RT 03", rw: "RW 07" }, { rt: "RT 04", rw: "RW 07" }
-  ];
-
-  let appData = null, curRT = "", curRW = "";
+  let appData = null;
+  let selectedBulan = "SEMUA";
+  let selectedTipeKas = "SEMUA";
+  let curRT = "";
 
   function rp(n) { return "Rp " + Number(n || 0).toLocaleString("id-ID"); }
+
+  // Mengambil data bulan milik warga (cocok untuk "November" maupun "NOVEMBER 2026")
+  function cariDataBulan(rincianObj, namaBulanTarget) {
+    const kunci = Object.keys(rincianObj).find(k =>
+      k.toUpperCase().includes(namaBulanTarget.toUpperCase()) ||
+      namaBulanTarget.toUpperCase().includes(k.toUpperCase())
+    );
+    return kunci ? rincianObj[kunci] : null;
+  }
 
   async function init() {
     try {
       const res = await fetch(API_URL);
       appData = await res.json();
+      document.getElementById('app-update').innerText = "Data Terhubung • " + appData.daftarBulan.join(", ");
+      renderBulanFilters();
       renderDashboard();
     } catch (e) {
       document.getElementById('app-update').innerText = "Gagal memuat data. Periksa koneksi internet.";
     }
   }
 
+  function renderBulanFilters() {
+    const opsi = ["SEMUA", ...appData.daftarBulan];
+    ['filter-bulan-home', 'filter-bulan-rt'].forEach(elId => {
+      const box = document.getElementById(elId);
+      box.innerHTML = '';
+      opsi.forEach(b => {
+        const label = b === "SEMUA" ? "Semua Bulan" : b;
+        const active = selectedBulan === b ? "active" : "";
+        box.innerHTML += `<button onclick="pilihBulan('${b}')" class="b-pill ${active}">${label}</button>`;
+      });
+    });
+  }
+
+  function pilihBulan(b) {
+    selectedBulan = b;
+    renderBulanFilters();
+    renderDashboard();
+    if (curRT) renderWarga();
+  }
+
+  function pilihTipeKas(tipe) {
+    selectedTipeKas = tipe;
+    document.getElementById('kas-all').classList.toggle('active', tipe === 'SEMUA');
+    document.getElementById('kas-out').classList.toggle('active', tipe === 'keluar');
+    document.getElementById('kas-in').classList.toggle('active', tipe === 'masuk');
+    renderKasList();
+  }
+
+  function hitungTotalRT(rtObj) {
+    if (selectedBulan === "SEMUA") return rtObj.totalSemua;
+    let sum = 0;
+    rtObj.warga.forEach(w => {
+      const d = cariDataBulan(w.rincian, selectedBulan);
+      if (d) sum += d.total;
+    });
+    return sum;
+  }
+
+  function hitungTotalWarga(wObj) {
+    if (selectedBulan === "SEMUA") return wObj.total;
+    const d = cariDataBulan(wObj.rincian, selectedBulan);
+    return d ? d.total : 0;
+  }
+
   function renderDashboard() {
-    document.getElementById('app-title').innerText = appData.pengaturan.judul;
-    document.getElementById('app-update').innerText = "Update: " + appData.pengaturan.update;
+    let totJimpitanSemua = 0;
+    appData.dataRT.forEach(rt => totJimpitanSemua += rt.totalSemua);
 
-    const nom = Number(appData.pengaturan.nominal) || 0;
-    let totIuran = 0;
-    appData.warga.forEach(w => totIuran += w.status.filter(Boolean).length * nom);
-
-    let masuk = 0, keluar = 0;
+    let masukLain = 0, totalKeluar = 0;
     appData.transaksi.forEach(t => {
-      if (t.tipe === 'masuk') masuk += Number(t.nominal) || 0;
-      if (t.tipe === 'keluar') keluar += Number(t.nominal) || 0;
+      if (t.tipe === 'masuk') masukLain += t.nominal;
+      if (t.tipe === 'keluar') totalKeluar += t.nominal;
     });
 
-    const totMasuk = totIuran + masuk;
-    document.getElementById('total-saldo').innerText = rp(totMasuk - keluar);
-    document.getElementById('total-masuk').innerText = rp(totMasuk);
-    document.getElementById('total-keluar').innerText = rp(keluar);
+    const totalMasuk = totJimpitanSemua + masukLain;
+    document.getElementById('total-saldo').innerText = rp(totalMasuk - totalKeluar);
+    document.getElementById('total-masuk').innerText = rp(totalMasuk);
+    document.getElementById('total-keluar').innerText = rp(totalKeluar);
 
     const grid = document.getElementById('view-rt');
     grid.innerHTML = '';
-    WILAYAH.forEach(w => {
-      const list = appData.warga.filter(x => x.rt.toUpperCase() === w.rt && x.rumah.toUpperCase() === w.rw);
-      let sub = 0;
-      list.forEach(x => sub += x.status.filter(Boolean).length * nom);
+    appData.dataRT.forEach(rt => {
+      const nominalRT = hitungTotalRT(rt);
       grid.innerHTML += `
-        <div onclick="openRT('${w.rt}','${w.rw}')" class="rt-card">
-          <div class="rt-name">${w.rt} / ${w.rw}</div>
-          <span class="rt-pill">${list.length} Warga</span>
-          <div style="font-size:10px; color:#9ca3af;">Total Jimpitan</div>
-          <div class="rt-money">${rp(sub)}</div>
+        <div onclick="openRT('${rt.wilayah}')" class="rt-card">
+          <div class="rt-name">${rt.wilayah}</div>
+          <span class="rt-pill">${rt.warga.length} KK</span>
+          <div style="font-size:10px; color:#9ca3af;">${selectedBulan === 'SEMUA' ? 'Total Jimpitan' : selectedBulan}</div>
+          <div class="rt-money">${rp(nominalRT)}</div>
           <div class="rt-go">Lihat Warga →</div>
         </div>`;
     });
 
+    renderKasList();
+  }
+
+  function renderKasList() {
+    let totJimpitanSemua = 0;
+    appData.dataRT.forEach(rt => totJimpitanSemua += rt.totalSemua);
+
+    const allTrx = [
+      { tanggal: "Rekap Otomatis", keterangan: "Total Jimpitan 8 RT", nominal: totJimpitanSemua, tipe: "masuk", bukti: "" },
+      ...appData.transaksi
+    ];
+
+    const filtered = allTrx.filter(t => selectedTipeKas === "SEMUA" || t.tipe === selectedTipeKas);
     const trxBox = document.getElementById('list-transaksi');
     trxBox.innerHTML = '';
-    const allTrx = [{ tanggal: "Rekap Otomatis", keterangan: "Total Jimpitan 8 RT", nominal: totIuran, tipe: "masuk" }, ...appData.transaksi];
-    allTrx.forEach(t => {
-      const ok = t.tipe === 'masuk';
+
+    let subtotal = 0;
+    filtered.forEach(t => {
+      const isMasuk = t.tipe === 'masuk';
+      subtotal += isMasuk ? t.nominal : -t.nominal;
+      const btnBukti = t.bukti ? `<a href="${t.bukti}" target="_blank" class="link-nota">📄 Lihat Nota</a>` : '';
+
       trxBox.innerHTML += `
         <div class="trx">
-          <div>
+          <div style="padding-right:6px;">
             <div style="font-size:12px; font-weight:600;">${t.keterangan}</div>
-            <div style="font-size:10px; color:#9ca3af;">${t.tanggal}</div>
+            <div style="font-size:10px; color:#9ca3af; margin-top:2px;">${t.tanggal}</div>
+            ${btnBukti}
           </div>
-          <div style="font-size:12px; font-weight:700; white-space:nowrap; color:${ok ? '#059669' : '#dc2626'};">
-            ${ok ? '+' : '-'} ${rp(t.nominal)}
+          <div style="font-size:12px; font-weight:700; white-space:nowrap; color:${isMasuk ? '#059669' : '#dc2626'};">
+            ${isMasuk ? '+' : '-'} ${rp(t.nominal)}
           </div>
         </div>`;
     });
+
+    if (filtered.length === 0) {
+      trxBox.innerHTML = `<div style="text-align:center; font-size:12px; color:#9ca3af; padding:16px 0;">Belum ada catatan pengeluaran.</div>`;
+    }
+
+    const judulBox = document.getElementById('judul-kas-box');
+    const subBox = document.getElementById('subtotal-kas-box');
+    if (selectedTipeKas === 'keluar') {
+      judulBox.innerText = "Total Pengeluaran";
+      subBox.style.color = "#dc2626";
+      subBox.innerText = rp(Math.abs(subtotal));
+    } else if (selectedTipeKas === 'masuk') {
+      judulBox.innerText = "Total Pemasukan";
+      subBox.style.color = "#059669";
+      subBox.innerText = rp(subtotal);
+    } else {
+      judulBox.innerText = "Selisih Saldo Kas";
+      subBox.style.color = "#047857";
+      subBox.innerText = rp(subtotal);
+    }
   }
 
-  function openRT(rt, rw) {
-    curRT = rt; curRW = rw;
+  function openRT(wilayah) {
+    curRT = wilayah;
     document.getElementById('cari').value = '';
     renderWarga();
     showPage('page-rt');
@@ -202,28 +303,26 @@
 
   function renderWarga() {
     const key = document.getElementById('cari').value.toLowerCase();
-    const list = appData.warga.filter(x => x.rt.toUpperCase() === curRT && x.rumah.toUpperCase() === curRW);
-    const nom = Number(appData.pengaturan.nominal) || 0;
-    let sub = 0;
-    list.forEach(x => sub += x.status.filter(Boolean).length * nom);
+    const rtObj = appData.dataRT.find(r => r.wilayah === curRT);
+    if (!rtObj) return;
 
-    document.getElementById('rt-title').innerText = curRT + " / " + curRW;
-    document.getElementById('rt-count').innerText = list.length + " Warga Terdaftar";
-    document.getElementById('rt-total').innerText = rp(sub);
+    document.getElementById('rt-title').innerText = rtObj.wilayah;
+    document.getElementById('rt-count').innerText = rtObj.warga.length + " Kepala Keluarga";
+    document.getElementById('rt-total').innerText = rp(hitungTotalRT(rtObj));
 
     const box = document.getElementById('list-warga');
     box.innerHTML = '';
-    list.forEach(w => {
+    rtObj.warga.forEach((w, idx) => {
       if (w.nama.toLowerCase().includes(key)) {
-        const lunas = w.status.filter(Boolean).length;
+        const nomWarga = hitungTotalWarga(w);
         box.innerHTML += `
-          <div onclick="openWarga('${w.nama}')" class="item">
-            <div>
-              <div style="font-size:13px; font-weight:600;">${w.nama}</div>
-              <div style="font-size:11px; color:#6b7280; margin-top:2px;">Lunas ${lunas}/${appData.daftarMinggu.length} Minggu</div>
+          <div onclick="openWarga(${idx})" class="item">
+            <div style="padding-right:6px;">
+              <div style="font-size:13px; font-weight:600;">${w.no}. ${w.nama}</div>
+              <div style="font-size:11px; color:#6b7280; margin-top:2px;">Klik untuk rincian mingguan</div>
             </div>
             <div style="text-align:right; white-space:nowrap;">
-              <div style="font-size:13px; font-weight:700; color:#059669;">${rp(lunas * nom)}</div>
+              <div style="font-size:13px; font-weight:700; color:#059669;">${rp(nomWarga)}</div>
               <div style="font-size:10px; color:#9ca3af;">Detail ›</div>
             </div>
           </div>`;
@@ -231,29 +330,40 @@
     });
   }
 
-  function openWarga(nama) {
-    const w = appData.warga.find(x => x.nama === nama && x.rt === curRT && x.rumah === curRW);
-    const nom = Number(appData.pengaturan.nominal) || 0;
-    const lunas = w.status.filter(Boolean).length;
+  function openWarga(idx) {
+    const rtObj = appData.dataRT.find(r => r.wilayah === curRT);
+    const w = rtObj.warga[idx];
 
-    document.getElementById('w-rt').innerText = w.rt + " / " + w.rumah;
+    document.getElementById('w-rt').innerText = rtObj.wilayah;
     document.getElementById('w-nama').innerText = w.nama;
-    document.getElementById('w-rumah').innerText = "Wilayah " + w.rumah;
-    document.getElementById('w-total').innerText = rp(lunas * nom);
+    document.getElementById('w-no').innerText = "Nomor Urut KK: " + w.no;
+    document.getElementById('w-total').innerText = rp(w.total);
 
-    const box = document.getElementById('list-minggu');
-    box.innerHTML = '';
-    appData.daftarMinggu.forEach((m, i) => {
-      const ok = w.status[i] === true;
-      box.innerHTML += `
-        <div class="item" style="cursor:default;">
-          <div>
-            <div style="font-size:13px; font-weight:600;">${m}</div>
-            <div style="font-size:11px; color:#9ca3af;">${rp(nom)}</div>
+    const container = document.getElementById('list-bulan-warga');
+    container.innerHTML = '';
+
+    Object.keys(w.rincian).forEach(namaBulan => {
+      const dataBulan = w.rincian[namaBulan];
+      let rowsHTML = '';
+      dataBulan.minggu.forEach(m => {
+        const bayar = m.nominal > 0;
+        rowsHTML += `
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #f3f4f6;">
+            <span style="font-size:13px; font-weight:500;">${m.minggu}</span>
+            <span class="${bayar ? 'b-ok' : 'b-no'}">${bayar ? rp(m.nominal) : 'Belum Bayar'}</span>
+          </div>`;
+      });
+
+      container.innerHTML += `
+        <div class="box">
+          <div class="flex-b" style="margin-bottom:8px; padding-bottom:6px; border-bottom:1px solid #e5e7eb;">
+            <span style="font-weight:700; font-size:13px; color:#047857;">${namaBulan}</span>
+            <span style="font-weight:700; font-size:12px;">Subtotal: ${rp(dataBulan.total)}</span>
           </div>
-          <span class="${ok ? 'b-ok' : 'b-no'}">${ok ? '✓ Lunas' : 'Belum Bayar'}</span>
+          ${rowsHTML}
         </div>`;
     });
+
     showPage('page-warga');
   }
 
@@ -265,8 +375,8 @@
 
   function switchTab(t) {
     const isRT = t === 'rt';
-    document.getElementById('view-rt').classList.toggle('hidden', !isRT);
-    document.getElementById('view-mutasi').classList.toggle('hidden', isRT);
+    document.getElementById('sec-rt').classList.toggle('hidden', !isRT);
+    document.getElementById('sec-mutasi').classList.toggle('hidden', isRT);
     document.getElementById('tab-rt').classList.toggle('active', isRT);
     document.getElementById('tab-mutasi').classList.toggle('active', !isRT);
   }
